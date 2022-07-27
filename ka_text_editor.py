@@ -818,7 +818,7 @@ class TextSequence:
 		return True
 
 class TextBox:
-	def __init__(self, name, address, numBytesUsed_chars, numBytesUsed_lines, box_x, box_y, box_type, box_w, box_h):
+	def __init__(self, name, address, numBytesUsed_chars, numBytesUsed_lines, box_x, box_y, box_type, box_w=-1, box_h=-1):
 		self.name = name
 		self.address = address
 		self.numBytesNeeded = numBytesUsed_chars + numBytesUsed_lines
@@ -826,13 +826,19 @@ class TextBox:
 		self.box_y = box_y
 		self.box_type = box_type
 		self.box_w = box_w
+		self.autoWidth = (self.box_w == -1)
 		self.box_h = box_h
+		self.autoHeight = (self.box_h == -1)
 		self.lines = []
 		self.maxTextLength = math.floor(self.box_w * 16 / 17)
 		self.maxNumLines = math.floor(self.box_h / 2.25)
 
 	def addLine(self, text, x, y):
 		self.lines.append(Line(text, x, y))
+		if self.autoWidth:
+			self.box_w = max(self.box_w, (len(text) + 2))
+		if self.autoHeight:
+			self.box_h = (len(self.lines) * 2) + 2
 
 	def verify(self, textBoxConsistent=True):
 		printedVerifyingMessage = False
