@@ -260,7 +260,7 @@ def replaceTutorial():
 	replaceTutorialHelper(0x4D16A, "Puyos")
 	replaceTutorialHelper(0x4D1AD, "Puyos")
 	replaceTutorialHelper(0x4D339, "Garbage Puyos\nget in\nthe way. ", startingHeight=0x5E)
-	replaceTutorialHelper(0x4D37A, "garbage by\nexploding Puyos\nadjacent\nto it.   ", startingHeight=0x5E)
+	replaceTutorialHelper(0x4D37A, "garbage by\npopping Puyos\nadjacent\nto it.     ", startingHeight=0x5E)
 
 def replaceCongrats():
 	file.seek(0x1CC82)
