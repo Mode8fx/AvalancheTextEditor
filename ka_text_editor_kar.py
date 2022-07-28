@@ -18,6 +18,7 @@ endAddressTutorial = 0x4D3AF
 
 romFile = "D:\\Kirby's Avalanche - Rewritten\\Kirby's Avalanche (USA).sfc"
 replaceAvalancheWithPuyo = False # If True, then all uses of "Avalanche" will be replaced with "Puyo Puyo"
+ignoreRomValidation = False
 
 def prepareNewTextSequences():
 	textSequences.append(TextSequence("Waddle Dee", 105, 40))
@@ -247,13 +248,17 @@ def replaceTutorialHelper(address, string, startingHeight=0xDE):
 	global file
 
 	lineHeight = startingHeight
+	file = open(romFile, "r+b")
 	file.seek(address)
 	for c in string:
 		if c != "\n":
-			file.write(c)
+			file.write(bytes(c, encoding='utf-8'))
 		else:
 			file.write(bytes([0x04, 0xFF, lineHeight, 0x02]))
 			lineHeight -= 0x40
+			if lineHeight < 0:
+				lineHeight = 0xDE
+	file.close()
 
 # Lazy hardcoding
 def replaceTutorial():
@@ -261,11 +266,17 @@ def replaceTutorial():
 	replaceTutorialHelper(0x4D1AD, "Puyos")
 	replaceTutorialHelper(0x4D339, "Garbage Puyos\nget in\nthe way. ", startingHeight=0x5E)
 	replaceTutorialHelper(0x4D37A, "garbage by\npopping Puyos\nadjacent\nto it.     ", startingHeight=0x5E)
+	print("Successfully replaced tutorial text.")
 
 def replaceCongrats():
+	global file
+
+	file = open(romFile, "r+b")
 	file.seek(0x1CC82)
 	for c in "Puyo Puyo":
-		file.write(bytes(decodedToRom[c], encoding='utf-8'))
+		writeChar(c)
+	file.close()
+	print("Successfully replaced credits text.")
 
 ########################
 # Edit above this line #
@@ -634,13 +645,18 @@ def prepareOriginalTextSequences():
 	textSequences[16].textBoxes[2].addLine("Dedede. And good", 4, 11)
 	textSequences[16].textBoxes[2].addLine("luck to you too.", 4, 13)
 
+def postProcessTextSequences():
+	for textSequence in textSequences:
+		for textBox in textSequence.textBoxes:
+			textBox.applyAuto()
+
 def restoreOriginalTextToRom(verify=True):
 	prepareOriginalTextSequences()
 	writeTextSequencesToRom(verify, True)
 
 def writeNewTextToRom(verify=True, textBoxConsistent=True):
-	shutil.copy("D:\\Kirby's Avalanche - Rewritten\\Kirby's Avalanche (USA) - original\\Kirby's Avalanche (USA).sfc", "D:\\Kirby's Avalanche - Rewritten\\Kirby's Avalanche (USA).sfc")
 	prepareNewTextSequences()
+	postProcessTextSequences()
 	writeTextSequencesToRom(verify, textBoxConsistent)
 	if replaceAvalancheWithPuyo:
 		replaceTutorial()
@@ -852,7 +868,9 @@ class TextBox:
 	def __init__(self, name, address, numBytesUsed_chars, numBytesUsed_lines, box_x, box_y, box_type, box_w=-1, box_h=-1):
 		self.name = name
 		self.address = address
-		self.numBytesNeeded = numBytesUsed_chars + numBytesUsed_lines
+		self.numBytesUsed_chars = numBytesUsed_chars
+		self.numBytesUsed_lines = numBytesUsed_lines
+		self.numBytesNeeded = self.numBytesUsed_chars + self.numBytesUsed_lines
 		self.box_x = box_x
 		self.box_y = box_y
 		self.box_type = box_type
@@ -866,10 +884,16 @@ class TextBox:
 
 	def addLine(self, text, x, y):
 		self.lines.append(Line(text, x, y))
+
+	def applyAuto(self):
 		if self.autoWidth:
-			self.box_w = max(self.box_w, (len(text) + 2))
+			for line in self.lines:
+				self.box_w = max(self.box_w, len(line.text) + 2)
+			self.box_w = max(self.box_w, math.ceil(self.numBytesUsed_chars / len(self.lines)) + 2)
+			self.maxTextLength = math.floor(self.box_w * 16 / 17)
 		if self.autoHeight:
 			self.box_h = (len(self.lines) * 2) + 2
+			self.maxNumLines = math.floor(self.box_h / 2.25)
 
 	def verify(self, textBoxConsistent=True):
 		printedVerifyingMessage = False
@@ -924,11 +948,16 @@ class Line:
 def main():
 	global replaceAvalancheWithPuyo
 
-	verifyRomIntegrity()
-	print("Valid rom detected. If you would like to continue and replace the game's text as defined in the text editor, type \"Go\" (without quotation marks). Otherwise, close the program.")
+	if not ignoreRomValidation:
+		shutil.copy("D:\\Kirby's Avalanche - Rewritten\\Kirby's Avalanche (USA) - original\\Kirby's Avalanche (USA).sfc", "D:\\Kirby's Avalanche - Rewritten\\Kirby's Avalanche (USA).sfc")
+		print("Looking for valid rom at \""+romFile+"\"")
+		verifyRomIntegrity()
+		print("Valid rom detected.")
+	print("\nIf you would like to continue and replace the game's text as defined in the text editor, type \"Go\" (without quotation marks). Otherwise, close the program.")
 	print("WARNING: This will replace the current rom. Back it up if you haven't already!")
 	choice = input()
 	if choice != "Go":
+		print("Cancelled.")
 		sys.exit()
 	if len(sys.argv) > 1:
 		if sys.argv[1] == "--print":
