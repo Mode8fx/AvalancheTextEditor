@@ -841,7 +841,8 @@ class TextBox:
 		self.box_h = box_h
 		self.autoHeight = (self.box_h == -1)
 		self.lines = []
-		self.maxTextLength = math.floor(self.box_w * 16 / 17)
+		# self.maxTextLength = math.floor(self.box_w * 16 / 17)
+		self.maxTextLength = self.box_w - 2
 		self.maxNumLines = math.floor(self.box_h / 2.25)
 
 	def addLine(self, text, x, y):
@@ -849,10 +850,12 @@ class TextBox:
 
 	def applyAuto(self):
 		if self.autoWidth:
-			for line in self.lines:
-				self.box_w = max(self.box_w, len(line.text) + 2)
+			longestLineLength = max(len(l.text) for l in self.lines)
+			self.box_w = max(self.box_w, longestLineLength + 2)
 			self.box_w = max(self.box_w, math.ceil(self.numBytesUsed_chars / len(self.lines)) + 2)
-			self.maxTextLength = math.floor(self.box_w * 16 / 17)
+			# self.maxTextLength = math.floor(self.box_w * 16 / 17)
+			self.maxTextLength = self.box_w - 2
+			print(self.name, longestLineLength, self.box_w)
 		if self.autoHeight:
 			self.box_h = (len(self.lines) * 2) + 2
 			self.maxNumLines = math.floor(self.box_h / 2.25)

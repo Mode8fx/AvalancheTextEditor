@@ -87,10 +87,10 @@ def prepareNewTextSequences():
 	textSequences[4].textBoxes[2].addLine("blobs! Avalanche!", 10, 9)
 
 	textSequences.append(TextSequence("Whispy Woods", 87, 30))
-	textSequences[5].addTextBox(TextBox("Whispy Woods 1", 0x1B9CF, 61, 20, 1, 6, 6))
+	textSequences[5].addTextBox(TextBox("Whispy Woods 1", 0x1B9CF, 61, 20, 1, 6, 6, box_w=20))
 	textSequences[5].textBoxes[0].addLine("Please be careful", 2, 7)
-	textSequences[5].textBoxes[0].addLine("around my roots,", 2, 9)
-	textSequences[5].textBoxes[0].addLine("can't you walk", 2, 11)
+	textSequences[5].textBoxes[0].addLine("around my roots.", 2, 9)
+	textSequences[5].textBoxes[0].addLine("Can't you walk", 2, 11)
 	textSequences[5].textBoxes[0].addLine("another way?", 2, 13)
 	textSequences[5].addTextBox(TextBox("Whispy Woods 2", 0x1BA31, 26, 10, 2, 10, 6))
 	textSequences[5].textBoxes[1].addLine("But I want some", 3, 11)
@@ -129,7 +129,10 @@ def prepareNewTextSequences():
 	textSequences[8].addTextBox(TextBox("Squishy 1", 0x1BC17, 52, 15, 7, 8, 6))
 	textSequences[8].textBoxes[0].addLine("Get ready for an", 8, 9)
 	textSequences[8].textBoxes[0].addLine("eight-armed", 8, 11)
-	textSequences[8].textBoxes[0].addLine("Avalanche, Kirby!", 8, 13)
+	if replaceAvalancheWithPuyo:
+		textSequences[8].textBoxes[0].addLine("avalanche, Kirby!", 8, 13)
+	else:
+		textSequences[8].textBoxes[0].addLine("Avalanche, Kirby!", 8, 13)
 	textSequences[8].addTextBox(TextBox("Squishy 2", 0x1BC69, 80, 25, 3, 4, 6))
 	textSequences[8].textBoxes[1].addLine("We can play later,", 4, 5)
 	textSequences[8].textBoxes[1].addLine("Squishy. I've", 4, 7)
@@ -155,7 +158,7 @@ def prepareNewTextSequences():
 	textSequences.append(TextSequence("Bugzzy", 37, 15))
 	textSequences[10].addTextBox(TextBox("Bugzzy 1", 0x1BDD7, 18, 5, 7, 10, 6))
 	textSequences[10].textBoxes[0].addLine("ROOAAAAAAARRR!!!!!", 8, 11)
-	textSequences[10].addTextBox(TextBox("Bugzzy 2", 0x1BDFD, 19, 10, 3, 12, 6))
+	textSequences[10].addTextBox(TextBox("Bugzzy 2", 0x1BDFD, 19, 10, 3, 12, 6, box_w=26))
 	# textSequences[10].textBoxes[1].addLine("Oh, I'm soooo", 4, 11) # I'm not going to use this line
 	textSequences[10].textBoxes[1].addLine("I'm not scared of you!", 4, 13)
 
@@ -879,7 +882,8 @@ class TextBox:
 		self.box_h = box_h
 		self.autoHeight = (self.box_h == -1)
 		self.lines = []
-		self.maxTextLength = math.floor(self.box_w * 16 / 17)
+		# self.maxTextLength = math.floor(self.box_w * 16 / 17)
+		self.maxTextLength = self.box_w - 2
 		self.maxNumLines = math.floor(self.box_h / 2.25)
 
 	def addLine(self, text, x, y):
@@ -887,10 +891,12 @@ class TextBox:
 
 	def applyAuto(self):
 		if self.autoWidth:
-			for line in self.lines:
-				self.box_w = max(self.box_w, len(line.text) + 2)
+			longestLineLength = max(len(l.text) for l in self.lines)
+			self.box_w = max(self.box_w, longestLineLength + 2)
 			self.box_w = max(self.box_w, math.ceil(self.numBytesUsed_chars / len(self.lines)) + 2)
-			self.maxTextLength = math.floor(self.box_w * 16 / 17)
+			# self.maxTextLength = math.floor(self.box_w * 16 / 17)
+			self.maxTextLength = self.box_w - 2
+			print(self.name, longestLineLength, self.box_w)
 		if self.autoHeight:
 			self.box_h = (len(self.lines) * 2) + 2
 			self.maxNumLines = math.floor(self.box_h / 2.25)
