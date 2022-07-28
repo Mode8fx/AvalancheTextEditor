@@ -7,8 +7,10 @@ import math
 import shutil
 import binascii
 
-startAddress = 0x1B5A0
-endAddress = 0x1C38F
+startAddressDialogue = 0x1B5A0
+endAddressDialogue = 0x1C38F
+startAddressTutorial = 0x4D024
+endAddressTutorial = 0x4D3AF
 
 ########################
 # Edit below this line #
@@ -240,6 +242,30 @@ def prepareNewTextSequences():
 	textSequences[16].textBoxes[2].addLine("The final", 4, 9)
 	textSequences[16].textBoxes[2].addLine("battle... Okay!", 4, 11)
 	textSequences[16].textBoxes[2].addLine("Let's do this!!", 4, 13)
+
+def replaceTutorialHelper(address, string, startingHeight=0xDE):
+	global file
+
+	lineHeight = startingHeight
+	file.seek(address)
+	for c in string:
+		if c != "\n":
+			file.write(c)
+		else:
+			file.write(bytes([0x04, 0xFF, lineHeight, 0x02]))
+			lineHeight -= 0x40
+
+# Lazy hardcoding
+def replaceTutorial():
+	replaceTutorialHelper(0x4D16A, "Puyos")
+	replaceTutorialHelper(0x4D1AD, "Puyos")
+	replaceTutorialHelper(0x4D339, "Garbage Puyos\nget in\nthe way. ", startingHeight=0x5E)
+	replaceTutorialHelper(0x4D37A, "garbage by\nexploding Puyos\nadjacent\nto it.   ", startingHeight=0x5E)
+
+def replaceCongrats():
+	file.seek(0x1CC82)
+	for c in "Puyo Puyo":
+		file.write(bytes(decodedToRom[c], encoding='utf-8'))
 
 ########################
 # Edit above this line #
@@ -616,6 +642,9 @@ def writeNewTextToRom(verify=True, textBoxConsistent=True):
 	shutil.copy("D:\\Kirby's Avalanche - Rewritten\\Kirby's Avalanche (USA) - original\\Kirby's Avalanche (USA).sfc", "D:\\Kirby's Avalanche - Rewritten\\Kirby's Avalanche (USA).sfc")
 	prepareNewTextSequences()
 	writeTextSequencesToRom(verify, textBoxConsistent)
+	if replaceAvalancheWithPuyo:
+		replaceTutorial()
+		replaceCongrats()
 
 def writeTextSequencesToRom(verify=True, textBoxConsistent=True):
 	global file
@@ -736,11 +765,11 @@ def generateTextSequencesFromRom():
 def printRomText():
 	file = open(romFile, "r+b")
 
-	file.seek(startAddress)
-	fbOriginal = bytearray(file.read(endAddress - startAddress + 1))
+	file.seek(startAddressDialogue)
+	fbOriginal = bytearray(file.read(endAddressDialogue - startAddressDialogue + 1))
 
 	counter = 0
-	currAddress = startAddress
+	currAddress = startAddressDialogue
 	for i in range(len(fbOriginal)):
 		if currAddress%16 == 0:
 			print("0x"+hex(currAddress)[2:].upper(), end='\t')

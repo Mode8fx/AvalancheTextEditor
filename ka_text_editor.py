@@ -6,8 +6,10 @@ import sys
 import math
 import binascii
 
-startAddress = 0x1B5A0
-endAddress = 0x1C38F
+startAddressDialogue = 0x1B5A0
+endAddressDialogue = 0x1C38F
+startAddressTutorial = 0x4D024
+endAddressTutorial = 0x4D3AF
 
 ########################
 # Edit below this line #
@@ -734,11 +736,11 @@ def generateTextSequencesFromRom():
 def printRomText():
 	file = open(romFile, "r+b")
 
-	file.seek(startAddress)
-	fbOriginal = bytearray(file.read(endAddress - startAddress + 1))
+	file.seek(startAddressDialogue)
+	fbOriginal = bytearray(file.read(endAddressDialogue - startAddressDialogue + 1))
 
 	counter = 0
-	currAddress = startAddress
+	currAddress = startAddressDialogue
 	for i in range(len(fbOriginal)):
 		if currAddress%16 == 0:
 			print("0x"+hex(currAddress)[2:].upper(), end='\t')
