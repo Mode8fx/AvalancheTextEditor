@@ -1,2 +1,4 @@
-# AvalancheTextEditor
- A text editor for Kirby's Avalanche
+# Avalanche Text Editor
+This is a text editor for the USA version of Kirby's Avalanche. There are two Python scripts: `ka_text_editor.py` is meant for general use, while `ka_text_editor_kar.py` is a modified version that I used for my [Kirby's Avalanche: Rewritten](https://www.romhacking.net/hacks/6415/) hack.
+
+This editor is light in features and not extremely user-friendly; I only made it for my own hack, but I'm posting it here in case someone else can make use of it. I added a few things for public release, such as verification that you're editing a valid rom, and checks that your edits are actually valid. It can only edit single player mode dialogue, though `ka_text_editor_kar.py` includes some hardcoded changes to the game's tutorial and ending scripts. If you really wanted to, I'm sure the same logic could be applied to editing other text in the game.
