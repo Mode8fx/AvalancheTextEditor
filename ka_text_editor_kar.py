@@ -247,35 +247,39 @@ def prepareNewTextSequences():
 	textSequences[16].textBoxes[2].addLine("battle... Okay!", 4, 11)
 	textSequences[16].textBoxes[2].addLine("Let's do this!!", 4, 13)
 
-def replaceTutorialHelper(address, string, startingHeight=0xDE):
+def replaceTutorialHelper(address, string, startingHeight=0xDE, startingLineNum=0x01):
 	global file
 
 	lineHeight = startingHeight
+	lineNum = startingLineNum
 	file = open(romFile, "r+b")
 	file.seek(address)
 	for c in string:
 		if c != "\n":
 			file.write(bytes(c, encoding='utf-8'))
 		else:
-			file.write(bytes([0x04, 0xFF, lineHeight, 0x02]))
+			file.write(bytes([0x04, 0xFF, lineHeight, lineNum]))
 			lineHeight -= 0x40
 			if lineHeight < 0:
 				lineHeight = 0xDE
+			lineNum += 0x01
+			lineNum = min(lineNum, 0x03)
 	file.close()
 
 # Lazy hardcoding
 def replaceTutorial():
 	replaceTutorialHelper(0x4D16A, "Puyos")
 	replaceTutorialHelper(0x4D1AD, "Puyos")
-	replaceTutorialHelper(0x4D339, "Garbage Puyos\nget in\nthe way. ", startingHeight=0x5E)
-	replaceTutorialHelper(0x4D37A, "garbage by\npopping Puyos\nadjacent\nto it.     ", startingHeight=0x5E)
+	replaceTutorialHelper(0x4D232, "pop.    ")
+	replaceTutorialHelper(0x4D339, "Garbage Puyos\nget in\nthe way. ", startingHeight=0x5E, startingLineNum=0x02)
+	replaceTutorialHelper(0x4D37A, "garbage by\npopping Puyos\nadjacent\nto it.     ", startingHeight=0x5E, startingLineNum=0x02)
 	print("Successfully replaced tutorial text.")
 
 def replaceCongrats():
 	global file
 
 	file = open(romFile, "r+b")
-	file.seek(0x1CC82)
+	file.seek(0x1CC81)
 	for c in "Puyo Puyo":
 		writeChar(c)
 	file.close()
